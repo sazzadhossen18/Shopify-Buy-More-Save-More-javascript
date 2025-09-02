@@ -150,3 +150,160 @@
 
 }
 {% endschema %}
+
+
+
+{% assign deal_1_final_price_cents = block.settings.deal_1_final_price | times: 100 %}
+{% assign deal_2_final_price_cents = block.settings.deal_2_final_price | times: 100 %}
+{% assign deal_3_final_price_cents = block.settings.deal_3_final_price | times: 100 %}
+
+{% assign deal_1_quantity = block.settings.deal_1_quantity %}
+{% assign deal_2_quantity = block.settings.deal_2_quantity %}
+{% assign deal_3_quantity = block.settings.deal_3_quantity %}
+
+{% assign deal_1_full_price = product.price | times: deal_1_quantity %}
+{% assign deal_2_full_price = product.price | times: deal_2_quantity %}
+{% assign deal_3_full_price = product.price | times: deal_3_quantity %}
+
+{% assign deal_1_saved_cents = deal_1_full_price | minus: deal_1_final_price_cents %}
+{% assign deal_2_saved_cents = deal_2_full_price | minus: deal_2_final_price_cents %}
+{% assign deal_3_saved_cents = deal_3_full_price | minus: deal_3_final_price_cents %}
+
+{% assign deal_1_saved_percent = deal_1_saved_cents | times: 100.0 | divided_by: deal_1_full_price %}
+{% assign deal_2_saved_percent = deal_2_saved_cents | times: 100.0 | divided_by: deal_2_full_price %}
+{% assign deal_3_saved_percent = deal_3_saved_cents | times: 100.0 | divided_by: deal_3_full_price %}
+
+<div class="buy-more-save-more">
+  <h3>{{ block.settings.heading_text }}</h3>
+
+  <!-- Deal 1 -->
+  <div class="discount-option" data-quantity="{{ deal_1_quantity }}">
+    {% if block.settings.deal_1_badge_text != blank %}
+      <span style="background: {{ block.settings.deal_1_badge_color }}; color: white; padding: 2px 6px; border-radius: 4px;">
+        {{ block.settings.deal_1_badge_text }}
+      </span>
+    {% endif %}
+    <input type="radio" name="quantity_discount" id="deal-1" hidden {% if preselect == 'deal_1' %}checked{% endif %}>
+    <label for="deal-1">
+    {% capture saving_1 %}
+    {% if block.settings.show_percentage_saved %}
+        {{ deal_1_saved_percent | round }}%
+        {% else %}
+        {{ deal_1_saved_cents | money }}
+        {% endif %}
+    {% endcapture %}
+      <div>{{ block.settings.deal_1_label | replace: "|saving|", saving_1 }}</div>
+      <div>
+        <s>{{ deal_1_full_price | money }}</s> {{ deal_1_final_price_cents | money }}
+      </div>
+    </label>
+  </div>
+
+  <!-- Deal 2 -->
+  <div class="discount-option selected" data-quantity="{{ deal_2_quantity }}" >
+    {% if block.settings.deal_2_badge_text != blank %}
+      <span style="background: {{ block.settings.deal_2_badge_color }}; color: white; padding: 2px 6px; border-radius: 4px;">
+        {{ block.settings.deal_2_badge_text }}
+      </span>
+    {% endif %}
+    <input type="radio" name="quantity_discount" id="deal-2" hidden {% if preselect == 'deal_2' %}checked{% endif %}>
+    <label for="deal-2">
+    {% capture saving_2 %}
+    {% if block.settings.show_percentage_saved %}
+        {{ deal_2_saved_percent | round }}%
+        {% else %}
+        {{ deal_2_saved_cents | money }}
+        {% endif %}
+    {% endcapture %}
+      <div>{{ block.settings.deal_2_label | replace: "|saving|", saving_2 }}</div>
+      <div>
+        <s>{{ deal_2_full_price | money }}</s> {{ deal_2_final_price_cents | money }}
+      </div>
+    </label>
+  </div>
+
+  <!-- Deal 3 -->
+  <div class="discount-option" data-quantity="{{ deal_3_quantity }}">
+    {% if block.settings.deal_3_badge_text != blank %}
+      <span style="background: {{ block.settings.deal_3_badge_color }}; color: white; padding: 2px 6px; border-radius: 4px;">
+        {{ block.settings.deal_3_badge_text }}
+      </span>
+    {% endif %}
+    <input type="radio" name="quantity_discount" id="deal-3" hidden {% if preselect == 'deal_3' %}checked{% endif %}>
+    <label for="deal-3">
+    {% capture saving_3 %}
+    {% if block.settings.show_percentage_saved %}
+        {{ deal_3_saved_percent | round }}%
+        {% else %}
+        {{ deal_3_saved_cents | money }}
+        {% endif %}
+    {% endcapture %}
+      <div>{{ block.settings.deal_3_label | replace: "|saving|", saving_3 }}</div>
+      <div>
+        <s>{{ deal_3_full_price | money }}</s> {{ deal_3_final_price_cents | money }}
+      </div>
+    </label>
+  </div>
+</div>
+
+<style>
+  .buy-more-save-more {
+    background: #fff;
+    border-radius: 10px;
+    font-family: sans-serif;
+  }
+  .buy-more-save-more h3 {
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+  .discount-option {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    margin-bottom: 12px;
+    transition: border-color 0.2s, background 0.2s;
+    cursor: pointer;
+  }
+  .discount-option.selected {
+    border-color: #22c55e;
+    background: #f0fdf4;
+  }
+  .discount-option label {
+    display: block;
+    cursor: pointer;
+  }
+  .discount-option s {
+    color: #999;
+  }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const dealOptions = document.querySelectorAll('.buy-more-save-more .discount-option');
+  const quantityInput = document.querySelector('input[name="quantity"]');
+
+  function updateSelection(option) {
+    dealOptions.forEach(opt => opt.classList.remove('selected'));
+    option.classList.add('selected');
+    const quantity = option.dataset.quantity;
+    if (quantityInput) {
+      quantityInput.value = quantity;
+    }
+  }
+
+  dealOptions.forEach(option => {
+    option.addEventListener('click', () => {
+      const radio = option.querySelector('input[type="radio"]');
+      radio.checked = true;
+      updateSelection(option);
+    });
+  });
+
+  // Initialize quantity on load (in case deal 2 is pre-selected)
+  const selectedOption = document.querySelector('.discount-option.selected');
+  if (selectedOption && quantityInput) {
+    quantityInput.value = selectedOption.dataset.quantity;
+  }
+});
+</script>
