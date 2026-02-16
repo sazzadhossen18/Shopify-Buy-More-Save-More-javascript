@@ -1,4 +1,444 @@
+Method 1
+=======
+             {% when 'save_bundle' %}
 
+<style>
+
+.bundlewrapper h2 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+.deal-options {
+    display: flex;
+    gap: 10px;
+    flex-wrap: nowrap;
+}
+.deal {
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  padding: 12px;
+  flex: 1;
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.3s ease;
+}
+.deal.active {
+  border-color: #000;
+  background: #f9f9f9;
+}
+
+p.deal-title {
+    margin: 0;
+    font-weight: 700;
+    color: #000;
+    font-size: 20px;
+}
+
+
+.deal img {
+    width: auto;
+    max-height: 80px;
+    margin-bottom: 10px;
+}
+   @media (max-width: 768px) {
+.deal img {
+    max-height: 40px;
+  
+}
+}
+.deal .label {
+  position: absolute;
+  top: -10px;
+  right: 10px;
+  background: #0f1063;
+  color: #fff;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 3px 8px;
+  border-radius: 5px;
+}
+.deal.best .label {
+  background: #0f1063;
+}
+.deal-price {
+    font-size: 15px;
+    margin: 0;
+}
+
+
+.custom-quantity {
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  border: 1px solid #ddd;
+}
+
+.qty-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: #f5f5f5;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+#product-quantity {
+  width: 60px;
+  text-align: center;
+  border: none;
+  outline: none;
+  font-size: 16px;
+}
+
+
+</style>
+
+
+<div class="bundlewrapper">
+  <h2>{{ block.settings.heading }}</h2>
+  <div class="deal-options">
+    <div class="deal active" data-deal="1pack" data-quantity="{{ block.settings.quantity_1 }}">
+      <img src="{{ block.settings.image_1 | img_url: 'master' }}" alt="">
+      <p class="deal-title">{{ block.settings.title_1 }}</p>
+      <p class="deal-price">{{ block.settings.price_1 }}</p>
+    </div>
+    <div class="deal" data-deal="2packs" data-quantity="{{ block.settings.quantity_2 }}">
+      <span class="label">{{ block.settings.label_2 }}</span>
+      <img src="{{ block.settings.image_2 | img_url: 'master' }}" alt="">
+      <p class="deal-title">{{ block.settings.title_2 }}</p>
+      <p class="deal-price">{{ block.settings.price_2 }}</p>
+    </div>
+    <div class="deal best" data-deal="3packs" data-quantity="{{ block.settings.quantity_3 }}">
+      <span class="label">{{ block.settings.label_3 }}</span>
+      <img src="{{ block.settings.image_3 | img_url: 'master' }}" alt="">
+      <p class="deal-title">{{ block.settings.title_3 }}</p>
+      <p class="deal-price">{{ block.settings.price_3 }}</p>
+    </div>
+  </div>
+</div>
+
+<div class="custom-quantity">
+  <button type="button" class="qty-btn minus">−</button>
+
+  <input 
+    type="text" 
+    name="quantity" 
+    id="product-quantity" 
+    value="1" 
+    min="1"
+  >
+
+  <button type="button" class="qty-btn plus">+</button>
+</div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+  const quantityInput = document.querySelector('#product-quantity');
+  const plusBtn = document.querySelector('.qty-btn.plus');
+  const minusBtn = document.querySelector('.qty-btn.minus');
+  const deals = document.querySelectorAll('.deal');
+
+  if (!quantityInput) return;
+
+  /* -----------------------
+     PLUS BUTTON
+  ----------------------- */
+  if (plusBtn) {
+    plusBtn.addEventListener('click', function() {
+      let current = parseInt(quantityInput.value) || 1;
+      quantityInput.value = current + 1;
+      quantityInput.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+  }
+
+  /* -----------------------
+     MINUS BUTTON
+  ----------------------- */
+  if (minusBtn) {
+    minusBtn.addEventListener('click', function() {
+      let current = parseInt(quantityInput.value) || 1;
+      if (current > 1) {
+        quantityInput.value = current - 1;
+        quantityInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    });
+  }
+
+});
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+  const deals = document.querySelectorAll('.deal');
+  const quantityInput = document.querySelector('#product-quantity');
+
+  if (!quantityInput) return;
+
+  /* -----------------------
+     CLICK DEAL → SET QTY
+  ----------------------- */
+  deals.forEach(function(deal) {
+    deal.addEventListener('click', function() {
+
+      deals.forEach(d => d.classList.remove('active'));
+      this.classList.add('active');
+
+      const qty = this.getAttribute('data-quantity');
+      quantityInput.value = qty;
+
+      // Trigger change (important for some themes)
+      quantityInput.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+  });
+
+  /* -----------------------
+     CHANGE QTY → SET DEAL
+  ----------------------- */
+  function updateActiveDeal() {
+    const currentQty = parseInt(quantityInput.value);
+
+    deals.forEach(function(deal) {
+      const dealQty = parseInt(deal.getAttribute('data-quantity'));
+
+      if (dealQty === currentQty) {
+        deals.forEach(d => d.classList.remove('active'));
+        deal.classList.add('active');
+      }
+    });
+  }
+
+  // When user types manually
+  quantityInput.addEventListener('input', updateActiveDeal);
+  quantityInput.addEventListener('change', updateActiveDeal);
+
+  // Run once on load
+  updateActiveDeal();
+
+});
+</script>
+
+{% comment %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+  const deals = document.querySelectorAll('.deal');
+  const quantityInput = document.querySelector('#product-quantity');
+
+  deals.forEach(function(deal) {
+    deal.addEventListener('click', function() {
+
+      // Remove active class from all
+      deals.forEach(d => d.classList.remove('active'));
+
+      // Add active to clicked
+      this.classList.add('active');
+
+      // Get quantity from data attribute
+      const qty = this.getAttribute('data-quantity');
+
+      // Update form quantity input
+      if (quantityInput) {
+        quantityInput.value = qty;
+      }
+
+    });
+  });
+
+});
+</script>
+{% endcomment %}
+
+Method:
+======
+
+<style>
+  .subscriptionwrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.deal-option {
+    border: 1px solid #ddd;
+    padding: 10px;
+    cursor: pointer;
+}
+.deal-option.active {
+    border-color: #000;
+    background: #000;
+    color: #fff;
+}
+
+.custom-quantity {
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  border: 1px solid #ddd;
+}
+
+.qty-btn {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: #f5f5f5;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+#product-quantity {
+  width: 60px;
+  text-align: center;
+  border: none;
+  outline: none;
+  font-size: 16px;
+}
+
+  </style>
+
+<div class="subscriptionwrapper">
+  <div class="deal-option active" data-quantity="1"><span>10%</span></div>
+  <div class="deal-option" data-quantity="2"><span>15%</span></div>
+  <div class="deal-option" data-quantity="4"><span>20%</span></div>
+  <div class="deal-option" data-quantity="6"><span>25%</span></div>
+  <div class="deal-option" data-quantity="8"><span>30%</span></div>
+</div>
+
+
+
+<div class="custom-quantity">
+  <button type="button" class="qty-btn minus">−</button>
+
+  <input 
+    type="text" 
+    name="quantity" 
+    id="product-quantity" 
+    value="1" 
+    min="1"
+  >
+
+  <button type="button" class="qty-btn plus">+</button>
+</div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+  const quantityInput = document.querySelector('#product-quantity');
+  const plusBtn = document.querySelector('.qty-btn.plus');
+  const minusBtn = document.querySelector('.qty-btn.minus');
+  const dealOptions = document.querySelectorAll('.deal-option');
+
+  if (!quantityInput) return;
+
+  /* -----------------------
+     PLUS BUTTON
+  ----------------------- */
+  if (plusBtn) {
+    plusBtn.addEventListener('click', function() {
+      let current = parseInt(quantityInput.value) || 1;
+      quantityInput.value = current + 1;
+      quantityInput.dispatchEvent(new Event('input', { bubbles: true }));
+    });
+  }
+
+  /* -----------------------
+     MINUS BUTTON
+  ----------------------- */
+  if (minusBtn) {
+    minusBtn.addEventListener('click', function() {
+      let current = parseInt(quantityInput.value) || 1;
+      if (current > 1) {
+        quantityInput.value = current - 1;
+        quantityInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    });
+  }
+
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+  const deals = document.querySelectorAll('.deal-option');
+  const quantityInput = document.querySelector('#product-quantity');
+
+  if (!quantityInput) return;
+
+  /* -----------------------
+     CLICK DEAL → SET QTY
+  ----------------------- */
+  deals.forEach(function(deal) {
+    deal.addEventListener('click', function() {
+
+      const dealQty = parseInt(this.dataset.quantity);
+
+      // Set quantity input value
+      quantityInput.value = dealQty;
+
+      // Trigger change event
+      quantityInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+    });
+  });
+
+
+  /* -----------------------
+     CHANGE QTY → SMART ACTIVE
+  ----------------------- */
+  function updateActiveDeal() {
+
+    let currentQty = parseInt(quantityInput.value) || 1;
+
+    let dealQuantities = [];
+
+    deals.forEach(function(deal) {
+      dealQuantities.push(parseInt(deal.dataset.quantity));
+    });
+
+    dealQuantities.sort(function(a, b) {
+      return a - b;
+    });
+
+    let activeQty = dealQuantities[0];
+
+    dealQuantities.forEach(function(qty) {
+      if (currentQty >= qty) {
+        activeQty = qty;
+      }
+    });
+
+    deals.forEach(function(deal) {
+      deal.classList.remove('active');
+
+      if (parseInt(deal.dataset.quantity) === activeQty) {
+        deal.classList.add('active');
+      }
+    });
+
+  }
+
+  quantityInput.addEventListener('input', updateActiveDeal);
+  quantityInput.addEventListener('change', updateActiveDeal);
+
+  updateActiveDeal();
+
+});
+</script>
+
+
+
+
+
+
+
+
+Method 3
+========
 {%- for block in section.blocks -%}
    {%- case block.type -%}
       {% when 'buy_more_save_more' %}
